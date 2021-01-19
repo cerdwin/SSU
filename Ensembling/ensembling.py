@@ -343,25 +343,17 @@ class GradientBoostedTrees(object):
         self.rng = rng
         self.n_trees = n_trees
         self.data = data
-        # 1. I calculate initial residuals and mean, so I can use it as my starting value in evaluate
         self.init_mean = np.mean(data[tattr])
         current_residuals = data[self.tattr]-np.mean(data[tattr])
-        # 2. I modify data so that 'tattr' column is replaced with the residuals
         current_data = data.modify_col(self.tattr, current_residuals)
         self.trees = []
         all_values = []
-        # 3. I create gradually trees from data with 'tattr' column corresponding to residuals of previous tree
         for i in range(self.n_trees):
-            # 4. I add to trees my latest tree made from previous residuals - amended data table
             new_tree = RegressionTree(current_data, tattr, xattrs, max_depth, max_features=lambda n:n, rng= rng)
             self.trees.append(new_tree)
-            # 5. I work out the prediction done by the latest tree
             current_value = evaluate_all(self.trees[-1], data)
-            #print("current_value:", teval)
             all_values.append(current_value)
-            # 6. I calculate new residuals and create an updated copy of 'data' table
             current_residue = data[tattr]-(self.init_mean+(self.beta*np.sum(all_values, axis=0)))
-            #current_data.append(data.modify_col(self.tattr, new_res))
             current_data = data.modify_col(self.tattr, current_residue)
  
     def evaluate(self, x):
